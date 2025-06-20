@@ -79,6 +79,32 @@ impl DbOptions {
             _props: props,
         })
     }
+
+    /// Report if any filter options are set.
+    ///
+    /// # Returns:
+    ///
+    /// - true if any filter options are set
+    /// - false if no filter options are set
+    ///
+    pub fn any(self) -> bool {
+        self.filter.is_some()
+    }
+
+    /// Unwrap the struct's properties and return them.
+    ///
+    /// # Returns:
+    ///
+    /// * None if props is empty
+    /// * A Some containing the props if props is not empty.
+    ///
+    pub fn unwrap_props(self) -> Option<HashMap<String, String>> {
+        if self._props.is_empty() {
+            return None;
+        } else {
+            Some(self._props)
+        }
+    }
 }
 
 /// An error struct used to report errors when creating the DbOptions struct.
@@ -102,6 +128,20 @@ impl DbOptionsValidationError {
     pub fn insert(&mut self, field: String) {
         self.fields.push(field);
     }
+
+    /// Concatenate all the fields into a string.
+    ///
+    /// # Returns:
+    ///
+    /// * A comma delimited string containing all the invalid field names.
+    ///
+    pub fn fields_to_string(self) -> String {
+        self.fields
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")
+    }
 }
 
 #[cfg(test)]
@@ -117,7 +157,17 @@ mod tests {
 
     #[test]
     fn test_construct_db_options___with_empty_props___returns_empty_options() {
-        // self.assertEqual({}, DbOptions({}).unwrap_props())
+        match DbOptions::new(HashMap::new()) {
+            Ok(object) => {
+                assert_eq!(None, object.unwrap_props());
+            }
+            Err(e) => {
+                panic!(
+                    "Error creating new DbOptions object: {}",
+                    e.fields_to_string()
+                );
+            }
+        }
     }
 
     #[test]
