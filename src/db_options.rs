@@ -172,10 +172,8 @@ mod tests {
 
     #[test]
     fn test_construct_db_options___with_not_recognized_option___returns_error() {
-        // self.assertRaises(DbOptionsValidationException, lambda: DbOptions({'wrong': 'option'}))
-    }
-
-    fn test_construct_db_options___with_option_base_path___raises_nothing_by_now() {
-        // self.assertIsNotNone(DbOptions({'base_path': 'something'}))
+        assert!(
+            DbOptions::new(HashMap::from([("wrong".to_string(), "option".to_string())])).is_err()
+        );
     }
 }
