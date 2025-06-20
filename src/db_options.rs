@@ -176,4 +176,32 @@ mod tests {
             DbOptions::new(HashMap::from([("wrong".to_string(), "option".to_string())])).is_err()
         );
     }
+
+    #[test]
+    fn test_construct_db_options___with_option_filter___returns_no_error() {
+        assert!(
+            DbOptions::new(HashMap::from([(
+                "filter".to_string(),
+                "some filter".to_string()
+            )]))
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn test_construct_db_options___with_not_recognised_options___returns_correct_string() {
+        match DbOptions::new(HashMap::from([
+            ("wrong".to_string(), "option".to_string()),
+            ("bad".to_string(), "option".to_string()),
+        ])) {
+            Ok(_) => {
+                panic!("Succeeded in creating new DbOptions object when it should have failed");
+            }
+            Err(e) => {
+                // the creation hashmap doesn't preserve ordering, so either of these is valid.
+                let fields = e.fields_to_string();
+                assert!("wrong, bad" == fields || "bad, wrong" == fields);
+            }
+        }
+    }
 }
