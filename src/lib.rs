@@ -41,6 +41,7 @@ pub fn the_42() -> i32 {
     42
 }
 
+pub mod db_options;
 pub mod delme;
 pub mod filesystem;
 pub mod other;
