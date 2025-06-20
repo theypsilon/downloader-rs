@@ -21,22 +21,98 @@
 #![allow(non_snake_case)]
 #![allow(dead_code)] // TODO - remove this. It is currently necessary because nothing calls this code.
 
+use std::collections::HashMap;
+
 #[derive(Debug)]
 /// This struct represents a database options configuration.
-pub struct DbOptions {}
+pub struct DbOptions {
+    /// A set of strings representing the currently enabled options.
+    pub present: Vec<String>,
+    /// An optional string representing a filter to apply to the data.
+    pub filter: Option<String>,
+    /// A HashMap where keys are string identifiers and values are string identifiers representing the properties of
+    /// each database object.
+    pub _props: HashMap<String, String>,
+}
 
-impl DbOptions {}
+impl DbOptions {
+    /// Creates a new `DbOptions` instance from a map of properties, validating them for correctness.
+    ///
+    /// # Arguments:
+    ///
+    /// * `props` - properties to set
+    ///
+    /// # Returns:
+    ///
+    /// * On success, a newly constructed DbOptions struct.
+    /// * On failure, an error struct.
+    ///
+    pub fn new(props: HashMap<String, String>) -> Result<Self, DbOptionsValidationError> {
+        let mut present = Vec::new();
+        let filter: Option<String>;
+
+        if props.contains_key("filter") {
+            present.push("filter".to_string());
+            match props.get("filter") {
+                Some(value) => filter = Some(value.clone()),
+                // This should never happen because of the contains, above.
+                None => filter = None,
+            }
+        } else {
+            filter = None;
+        }
+
+        if present.len() != props.len() {
+            let mut validation_error = DbOptionsValidationError::new();
+            props.keys().for_each(|o| {
+                if !present.contains(o) {
+                    validation_error.insert(o.to_string());
+                }
+            });
+
+            return Err(validation_error);
+        }
+
+        Ok(DbOptions {
+            present: present,
+            filter: filter,
+            _props: props,
+        })
+    }
+}
 
 /// An error struct used to report errors when creating the DbOptions struct.
-pub struct DbOptionsValidationError {}
+pub struct DbOptionsValidationError {
+    /// A list of field names which failed validation.
+    fields: Vec<String>,
+}
 
-impl DbOptionsValidationError {}
+impl DbOptionsValidationError {
+    /// Create a new empty DbOptionsValidationError struct.
+    pub fn new() -> Self {
+        DbOptionsValidationError { fields: Vec::new() }
+    }
+
+    /// Insert an item into the DbOptionsValidationError list.
+    ///
+    /// # Arguments:
+    ///
+    /// * `field` - The field to insert.
+    ///
+    pub fn insert(&mut self, field: String) {
+        self.fields.push(field);
+    }
+}
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
+
+    use super::DbOptions;
+
     #[test]
-    fn test_construct_db_options___with_correct_props___returns_options() {
-        // self.assertIsNotNone(db_options())
+    fn test_construct_db_options___with_empty_props___returns_no_error() {
+        assert!(DbOptions::new(HashMap::new()).is_ok());
     }
 
     #[test]
